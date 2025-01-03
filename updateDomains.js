@@ -9,13 +9,7 @@ const os = require('os');
 
 // Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyAx_5ZnR__8sizS5_1k3uP-gilviDiGO6Q",
-  authDomain: "toft-d4f39.firebaseapp.com",
-  projectId: "toft-d4f39",
-  storageBucket: "toft-d4f39.appspot.com",
-  messagingSenderId: "277892110082",
-  appId: "1:277892110082:web:4d4578f88e521c2fb3141b",
-  measurementId: "G-L976F1ZSTY",
+
 };
 
 // Initialiser Firebase
