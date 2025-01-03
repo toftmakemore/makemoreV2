@@ -1,0 +1,71 @@
+<invoke name="edit_file">
+<parameter name="target_file">src/components/WhiteLabelProvider.vue</parameter>
+<parameter name="instructions">Tilføjer global override for SVG ikoner i knapper</parameter>
+<parameter name="code_edit">// ... existing code ...
+
+/* Global button icon overrides */
+.btn {
+  &.btn-info {
+    color: #fff !important;
+    
+    .svg-inline--fa,
+    svg,
+    i {
+      color: #fff !important;
+      
+      path {
+        fill: #fff !important;
+      }
+    }
+    
+    &:hover,
+    &:focus,
+    &:active {
+      .svg-inline--fa,
+      svg,
+      i {
+        color: #fff !important;
+        
+        path {
+          fill: #fff !important;
+        }
+      }
+    }
+  }
+}
+
+/* Ensure SVG icons inherit color */
+svg.svg-inline--fa {
+  color: inherit !important;
+  
+  path {
+    fill: currentColor !important;
+  }
+}
+
+/* Force white color for info buttons */
+.btn-info {
+  .svg-inline--fa,
+  svg,
+  i,
+  path {
+    color: #fff !important;
+    fill: #fff !important;
+  }
+}
+
+/* Additional specificity for Font Awesome icons */
+.svg-inline--fa.fa-vial {
+  &.me-2 {
+    color: inherit !important;
+    
+    path {
+      fill: currentColor !important;
+    }
+  }
+}
+
+/* ... existing code ... */
+</parameter>
+<parameter name="blocking">true</parameter>
+</invoke> 

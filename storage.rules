@@ -1,0 +1,21 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /blog-images/{imageId} {
+      // Tillad læsning for alle
+      allow read: if true;
+      
+      // Tillad skrivning for admin og superadmin
+      allow write: if request.auth != null && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 1 || 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 2);
+    }
+    
+    // Default regel for alle andre paths
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

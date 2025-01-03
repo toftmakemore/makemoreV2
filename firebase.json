@@ -1,0 +1,190 @@
+{
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs18",
+    "region": "europe-west1",
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run lint"
+    ],
+    "cors": {
+      "origin": [
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "https://toft-d4f39.web.app",
+        "https://*.web.app"
+      ],
+      "methods": ["GET", "POST", "OPTIONS"],
+      "allowedHeaders": ["Content-Type", "Authorization"],
+      "credentials": true
+    },
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log"
+    ]
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": [
+    {
+      "target": "main",
+      "public": "dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [{
+        "source": "**",
+        "destination": "/index.html"
+      }],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "GET, POST, OPTIONS"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Authorization"
+            },
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "secondary",
+      "public": "dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [{
+        "source": "**",
+        "destination": "/index.html"
+      }],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "GET, POST, OPTIONS"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Authorization"
+            },
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "fir-demo-m4wxvx47-gak5",
+      "public": "dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [{
+        "source": "**",
+        "destination": "/index.html"
+      }],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Access-Control-Allow-Methods",
+              "value": "GET, POST, OPTIONS"
+            },
+            {
+              "key": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Authorization"
+            },
+            {
+              "key": "Access-Control-Allow-Credentials",
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "functions": {
+      "host": "localhost",
+      "port": 5001
+    },
+    "firestore": {
+      "host": "localhost",
+      "port": 8081
+    },
+    "database": {
+      "host": "localhost",
+      "port": 9000
+    },
+    "hosting": {
+      "host": "localhost",
+      "port": 5002
+    },
+    "storage": {
+      "host": "localhost",
+      "port": 9199
+    },
+    "ui": {
+      "enabled": true,
+      "host": "localhost",
+      "port": 4001
+    },
+    "hub": {
+      "host": "localhost",
+      "port": 4401
+    },
+    "logging": {
+      "host": "localhost",
+      "port": 4501
+    },
+    "eventarc": {
+      "host": "localhost",
+      "port": 9302
+    },
+    "singleProjectMode": true
+  }
+}

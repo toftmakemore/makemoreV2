@@ -1,0 +1,41 @@
+<invoke name="edit_file">
+<parameter name="target_file">src/components/WhiteLabelProvider.vue</parameter>
+<parameter name="instructions">Fjerner tekst tema logikken fra WhiteLabelProvider</parameter>
+<parameter name="code_edit">// ... existing code ...
+
+<script setup>
+import { onMounted, watch } from 'vue';
+import { useStore } from 'vuex';
+
+const store = useStore();
+
+// Funktion til at opdatere tema
+const updateTheme = (theme) => {
+  if (!theme) return;
+  
+  const root = document.documentElement;
+  
+  // Opdater basis farver
+  root.style.setProperty('--background-color', theme.backgroundColor);
+  root.style.setProperty('--sidenav-color', theme.sidenavColor);
+  root.style.setProperty('--card-color', theme.cardColor);
+  root.style.setProperty('--nav-wrapper-color', theme.navWrapperColor);
+};
+
+// Watch for ændringer i theme state
+watch(
+  () => store.state.theme,
+  (newTheme) => {
+    updateTheme(newTheme);
+  },
+  { immediate: true }
+);
+
+onMounted(() => {
+  // Initialiser tema baseret på store
+  updateTheme(store.state.theme);
+});
+</script>
+</parameter>
+<parameter name="blocking">true</parameter>
+</invoke> 

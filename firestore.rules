@@ -1,0 +1,283 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAdminOrSuperAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 1 || 
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 2);
+    }
+
+    function isSuperAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 2;
+    }
+
+    function isRole3() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 3;
+    }
+
+    function canAccessUser(userId) {
+      return request.auth != null && (
+        request.auth.uid == userId || 
+        isAdminOrSuperAdmin() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.createdBy == userId
+      );
+    }
+
+    function canAccessOwnData() {
+      return request.auth != null && 
+             (request.auth.uid == resource.data.userId || 
+              request.auth.uid == resource.data.id ||
+              request.auth.uid == resource.data.createdBy);
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if canAccessUser(userId);
+      allow create: if request.auth != null && (
+        // SuperAdmin
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 1) ||
+        // Admin
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 2) ||
+        // Normal bruger
+        canAccessUser(userId)
+      );
+      allow update: if canAccessUser(userId);
+      allow delete: if canAccessUser(userId);
+      
+      // Subcollections under users
+      match /autoPosts/{autoPostId} {
+        allow read: if canAccessUser(userId);
+        allow create: if request.auth != null && 
+                      (request.auth.uid == userId || 
+                       canAccessUser(request.resource.data.userId));
+        allow update, delete: if canAccessUser(userId);
+      }
+
+      // General rule for other subcollections
+      match /{subcollection}/{document=**} {
+        allow read, write: if canAccessUser(userId);
+      }
+    }
+
+    // Posts collection
+    match /posts/{documentId} {
+      allow read: if request.auth != null && (
+        // Rolle 3 kan se posts hvor de er enten userId, id eller createdBy
+        resource.data.userId == request.auth.uid ||
+        resource.data.id == request.auth.uid ||
+        resource.data.createdBy == request.auth.uid ||
+        // Admin/SuperAdmin kan se alle posts
+        isAdminOrSuperAdmin()
+      );
+      
+      allow create: if request.auth != null && (
+        // Rolle 3 kan kun oprette egne posts
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.id == request.auth.uid ||
+        // Admin/SuperAdmin kan oprette for alle
+        isAdminOrSuperAdmin()
+      );
+      
+      allow update, delete: if request.auth != null && (
+        // Rolle 3 kan kun opdatere/slette egne posts
+        resource.data.userId == request.auth.uid ||
+        resource.data.id == request.auth.uid ||
+        // Admin/SuperAdmin kan opdatere/slette alle
+        isAdminOrSuperAdmin()
+      );
+    }
+
+    // PostSend collection
+    match /postSend/{documentId} {
+      allow read: if request.auth != null && (
+        // Rolle 3 kan se deres egne posts
+        resource.data.userId == request.auth.uid ||
+        resource.data.id == request.auth.uid ||
+        resource.data.createdBy == request.auth.uid ||
+        // Admin/SuperAdmin kan se alle posts
+        isAdminOrSuperAdmin()
+      );
+      
+      allow create: if request.auth != null && (
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.id == request.auth.uid ||
+        request.resource.data.createdBy == request.auth.uid ||
+        isAdminOrSuperAdmin()
+      );
+      
+      allow update, delete: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.id == request.auth.uid ||
+        resource.data.createdBy == request.auth.uid ||
+        isAdminOrSuperAdmin()
+      );
+    }
+
+    // Analytics collection
+    match /analytics/{documentId} {
+      allow read: if request.auth != null && (
+        canAccessOwnData() ||  // Kan se egen data
+        isAdminOrSuperAdmin()  // Admin/SuperAdmin kan se alt
+      );
+      
+      allow write: if request.auth != null && (
+        request.auth.uid == request.resource.data.id ||  // Kan skrive egen data
+        isAdminOrSuperAdmin()  // Admin/SuperAdmin kan skrive
+      );
+    }
+
+    // Companies collection (admin only)
+    match /companies/{documentId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && (
+        // SuperAdmin eller Admin
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role <= 2
+      );
+      allow update, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role <= 2;
+    }
+
+    // Projects collection
+    match /projects/{projectId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // DealerCars collection
+    match /{path=**}/dealerCars/{carId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                   (resource == null || 
+                    resource.data.userId == request.auth.uid || 
+                    canAccessUser(resource.data.userId));
+    }
+
+    // Admin access to all dealerCars
+    match /{document=**}/dealerCars/{carId} {
+      allow read: if isAdminOrSuperAdmin();
+    }
+
+    // DesignImages collection
+    match /designImages/{designId} {
+      allow read: if request.auth != null;
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // BlogPosts collection
+    match /blogPosts/{postId} {
+      allow read: if true;
+      allow create, update, delete: if isAdminOrSuperAdmin();
+    }
+
+    // BlogPost collection (singular)
+    match /blogPost/{postId} {
+      allow read: if true;
+      allow create, update, delete: if isAdminOrSuperAdmin();
+    }
+
+    // DesignGroup collection
+    match /designGroup/{groupId} {
+      allow read: if request.auth != null;
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // MetaUserData collection
+    match /metaUserData/{userId} {
+      allow read: if request.auth != null && canAccessUser(userId);
+      allow write: if request.auth != null && canAccessUser(userId);
+    }
+
+    // AdminSetting collection
+    match /AdminSetting/{settingId} {
+      allow read: if request.auth != null;
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // ScheduledPosts collection
+    match /users/{userId}/scheduledPosts/{postId} {
+      allow read: if canAccessUser(userId);
+      allow create: if request.auth != null && 
+                    (request.auth.uid == userId || 
+                     canAccessUser(request.resource.data.userId));
+      allow update, delete: if canAccessUser(userId);
+    }
+
+    // Timeline collection
+    match /users/{userId}/timeline/{entryId} {
+      allow read: if canAccessUser(userId);
+      allow create: if request.auth != null && 
+                    (request.auth.uid == userId || 
+                     canAccessUser(request.resource.data.userId));
+      allow update, delete: if canAccessUser(userId);
+    }
+
+    // ScrapedCars collection
+    match /scraped_cars/{carId} {
+      // Læseadgang for alle autentificerede brugere
+      allow read: if request.auth != null;
+      
+      // Tillad al skrivning til denne collection
+      allow write: if true;
+    }
+    
+    // SourceFiles collection - for kodeanalyse
+		match /sourceFiles/{fileId} {
+		  allow read: if request.auth != null && isAdminOrSuperAdmin();
+		  allow write: if request.auth != null && isAdminOrSuperAdmin();
+		}
+    
+    // Invoices collection
+match /invoices/{invoiceId} {
+  allow read: if request.auth != null && (
+    // Brugere kan se deres egne fakturaer
+    resource.data.userId == request.auth.uid ||
+    // Admin/SuperAdmin kan se alle fakturaer
+    isAdminOrSuperAdmin()
+  );
+  
+  allow create: if request.auth != null && (
+    // Kun Admin/SuperAdmin kan oprette fakturaer
+    isAdminOrSuperAdmin()
+  );
+  
+  allow update: if request.auth != null && (
+    // Kun Admin/SuperAdmin kan opdatere fakturaer
+    isAdminOrSuperAdmin()
+  );
+  
+  allow delete: if request.auth != null && (
+    // Kun Admin/SuperAdmin kan slette fakturaer
+    isAdminOrSuperAdmin()
+  );
+}
+
+    // Default rule - deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Eksisterende regler...
+
+    // Regler for whitelabel uploads
+    match /whitelabel/{userId}/{allPaths=**} {
+      allow read: if request.auth != null;  // Alle autentificerede brugere kan læse
+      allow write: if request.auth != null && (
+        request.auth.uid == userId ||  // Ejeren kan skrive
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role <= 2  // Admin og superadmin kan skrive
+      );
+    }
+
+    // Resten af dine eksisterende regler...
+  }
+}

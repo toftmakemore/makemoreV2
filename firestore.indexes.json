@@ -1,0 +1,32 @@
+{
+    "indexes": [
+      {
+        "collectionGroup": "autoPosts",
+        "queryScope": "COLLECTION_GROUP",
+        "fields": [
+          {
+            "fieldPath": "active",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "createdAt",
+            "order": "DESCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "users",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "companyType",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "dealerId",
+            "order": "ASCENDING"
+          }
+        ]
+      }
+    ]
+  }

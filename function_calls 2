@@ -1,0 +1,43 @@
+<invoke name="edit_file">
+<parameter name="target_file">src/views/pages/components/NavHead.vue</parameter>
+<parameter name="instructions">Tilføjer mere specifik styling med de globale tekst-variabler.</parameter>
+<parameter name="code_edit">// ... existing code ...
+
+<style>
+/* Global styles */
+:deep(*) {
+  color: var(--global-text-primary);
+}
+
+.nav-wrapper {
+  background-color: var(--card-color) !important;
+  border: 1px solid var(--global-text-muted) !important;
+}
+
+.nav-link {
+  color: var(--global-text-primary) !important;
+  
+  &:hover {
+    background-color: rgba(var(--text-primary-rgb), 0.1) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  &.active {
+    background-color: var(--text-primary) !important;
+    color: #ffffff !important;
+  }
+  
+  i {
+    color: var(--global-icon-color) !important;
+  }
+}
+
+.nav-pills {
+  background-color: var(--card-color) !important;
+}
+
+/* Eksisterende styling fortsætter... */
+</style>
+</parameter>
+<parameter name="blocking">true</parameter>
+</invoke> 
